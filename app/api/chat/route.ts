@@ -1,7 +1,7 @@
 import { kv } from '@vercel/kv'
 import { OpenAIStream, StreamingTextResponse } from 'ai'
 import { Configuration, OpenAIApi } from 'openai-edge'
-
+import fs from 'fs'
 import { auth } from '@/auth'
 import { nanoid } from '@/lib/utils'
 
@@ -35,6 +35,7 @@ export async function POST(req: Request) {
     stream: true
   })
 
+  const prompt = fs.readFileSync('PROMPT.md', 'utf8')
   const stream = OpenAIStream(res, {
     async onCompletion(completion) {
       const title = json.messages[0].content.substring(0, 100)
@@ -50,6 +51,10 @@ export async function POST(req: Request) {
           createdAt,
           path,
           messages: [
+            { 
+              role: 'system',
+              assistant: prompt
+            },
             ...messages,
             {
               content: completion,
